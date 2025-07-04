@@ -42,6 +42,20 @@ func main() {
 		os.Exit(1)
 	}
 
+	err = os.MkdirAll(folder, 0750)
+	if err != nil {
+		fmt.Printf("Error creating folder %s: %v\n", folder, err)
+		os.Exit(1)
+	}
+
+	indexPath := filepath.Join(folder, "index.html")
+	err = os.WriteFile(indexPath, []byte(mainPage), 0600)
+	if err != nil {
+		fmt.Printf("Error saving index.html: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("Saved index.html to %s\n", indexPath)
+
 	downloadFiles(siteInfo.Host, siteInfo.UID, folder, cacheData)
 }
 
@@ -99,9 +113,16 @@ func fetchCache(host, uid string) (map[string]interface{}, error) {
 func downloadFiles(host, uid, folder string, cacheData map[string]interface{}) {
 	total := len(cacheData)
 	current := 0
+	downloaded := 0
 
 	for key := range cacheData {
 		current++
+		
+		if isExcludedFile(key) {
+			fmt.Printf("Skipping %d/%d: %s (excluded)\n", current, total, key)
+			continue
+		}
+
 		fmt.Printf("Downloading %d/%d: %s\n", current, total, key)
 
 		accessURL := fmt.Sprintf("https://%s/access/%s/%s", host, uid, key)
@@ -148,8 +169,20 @@ func downloadFiles(host, uid, folder string, cacheData map[string]interface{}) {
 			if removeErr := os.Remove(path); removeErr != nil {
 				fmt.Printf("Error removing file %s: %v\n", path, removeErr)
 			}
+		} else {
+			downloaded++
 		}
 	}
 
-	fmt.Printf("Downloaded %d files to %s\n", total, folder)
+	fmt.Printf("Downloaded %d files to %s\n", downloaded, folder)
+}
+
+func isExcludedFile(filename string) bool {
+	ext := filepath.Ext(filename)
+	switch ext {
+	case ".css", ".js", ".html", ".htm":
+		return true
+	default:
+		return false
+	}
 } 
