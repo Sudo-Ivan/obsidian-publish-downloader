@@ -4,11 +4,15 @@ Obsidian Publish downloader in Go, no external dependencies and simple.
 
 ## Usage
 
+1. Download the binary from the [releases](https://github.com/Sudo-Ivan/obsidian-publish-downloader/releases) page.
+
+or use Go:
+
 ```bash
 go install github.com/Sudo-Ivan/obsidian-publish-downloader@latest
 ```
 
-or
+or build from source:
 
 ```bash
 go build -o obsidian-downloader main.go
